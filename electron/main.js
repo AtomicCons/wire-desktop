@@ -245,11 +245,13 @@ const showMainWindow = () => {
 
   main.webContents.on('will-navigate', (event, url) => {
     // Prevent any kind of navigation inside the main window
+    console.log('prevented will-navigate');
     event.preventDefault();
   });
 
   // Handle the new window event in the main Browser Window
   main.webContents.on('new-window', (event, _url) => {
+    console.log('prevented new-window');
     event.preventDefault();
 
     // Ensure the link does not come from a webview
@@ -282,6 +284,7 @@ const showMainWindow = () => {
     }
 
     if (!quitting) {
+      console.log('prevented close');
       event.preventDefault();
       debugMain('Closing window...');
 
@@ -463,6 +466,7 @@ class ElectronWrapperInit {
 
     const openLinkInNewWindow = (event, _url) => {
       // Prevent default behavior
+      console.log('prevented openLinkInNewWindow');
       event.preventDefault();
 
       webviewProtectionDebug('Opening an external window from a webview. URL: %s', _url);
@@ -471,9 +475,11 @@ class ElectronWrapperInit {
     const willNavigateInWebview = (event, _url) => {
       // Ensure navigation is to a whitelisted domain
       if (util.isMatchingHost(_url, BASE_URL)) {
+        console.log('Navigating inside webview', _url);
         webviewProtectionDebug('Navigating inside webview. URL: %s', _url);
       } else {
         webviewProtectionDebug('Preventing navigation inside webview. URL: %s', _url);
+        console.log('prevented navigation inside webview');
         event.preventDefault();
       }
     };
@@ -482,6 +488,7 @@ class ElectronWrapperInit {
       switch (contents.getType()) {
         case 'window':
           contents.on('will-attach-webview', (e, webPreferences, params) => {
+            console.log('will-attach-webview');
             const _url = params.src;
 
             // Use secure defaults
@@ -494,6 +501,7 @@ class ElectronWrapperInit {
 
             // Verify the URL being loaded
             if (!util.isMatchingHost(_url, BASE_URL)) {
+              console.log('prevented will-attach-webview');
               e.preventDefault();
               webviewProtectionDebug('Prevented to show an unauthorized <webview>. URL: %s', _url);
             }
@@ -503,9 +511,11 @@ class ElectronWrapperInit {
         case 'webview':
           // Open webview links outside of the app
           contents.on('new-window', (e, _url) => {
+            console.log('new-window');
             openLinkInNewWindow(e, _url);
           });
           contents.on('will-navigate', (e, _url) => {
+            console.log('will-navigate');
             willNavigateInWebview(e, _url);
           });
 
